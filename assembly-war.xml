@@ -1,0 +1,42 @@
+<assembly>
+	<id>war</id>
+	<formats>
+		<format>war</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+	<fileSets>
+		<!-- ako zelimo kopirati subdirove i sve fajlove ne treba uopce pisati include tagove -->
+		<fileSet>
+			<directory>src/main/webapp</directory>
+			<outputDirectory>/</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>target/lib</directory>
+			<outputDirectory>WEB-INF/lib</outputDirectory>
+			<includes>
+				<include>*.jar</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>target</directory>
+			<outputDirectory>WEB-INF/lib</outputDirectory>
+			<includes>
+				<include>${project.artifactId}-${project.version}.jar</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>target/maven-archiver</directory>
+			<outputDirectory>META-INF/maven/${project.groupId}/${project.artifactId}</outputDirectory>
+			<includes>
+				<include>pom.properties</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>${basedir}</directory>
+			<outputDirectory>META-INF/maven/${project.groupId}/${project.artifactId}</outputDirectory>
+			<includes>
+				<include>pom.xml</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+</assembly>

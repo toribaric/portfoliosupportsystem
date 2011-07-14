@@ -1,0 +1,176 @@
+.mainHeader {
+    height: 50px !important;
+    margin-bottom: 5px;
+    padding: 10px;
+}
+.mainHeader-text {
+    color: #596F8F;
+    font-size: 18px;
+    font-weight: 200;
+    padding: 15px 5px;
+    text-shadow: 0 1px 0 #fff;
+}
+
+#anndetailspanel-initial-msg {
+    padding-top: 30px;
+    text-align: center;
+    font-family: Arial;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+#trainingsets-initial-msg {
+    margin-top: 130px;
+    text-align: center;
+    font-family: Arial;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.icon-delete {
+    background: url('../images/icons/delete.gif');
+}
+
+.icon-add {
+    background: url('../images/icons/add.gif');
+}
+
+.icon-upload {
+    background: url('../images/icons/application_go.png');
+}
+
+.chart-tip {
+    text-align: center;
+}
+
+.chart-tip span {
+    font-weight: bold;
+}
+
+/*
+    DND elements (network structure modification)
+*/
+#structureElements {
+    width: 100%;
+    text-align: center;
+}
+
+.dd-instructions {
+    font-family: Arial;
+    font-size: 10px;
+    text-align: left;
+    padding: 5px;
+}
+.dd-instructions li {
+    margin-bottom: 8px;
+}
+
+.remove-element-img {
+    margin-top: 10px;
+    margin-right: -10px;
+    float: right;
+}
+
+.layer-remove-element-img {
+    margin-top: -5px;
+    float: right;
+}
+
+.dd-hidden-neuron {
+    font-family: Arial;
+    font-weight: bold;
+    font-size: 10px;
+    width: 40px;
+    height: 60px;
+    background: url('../images/hidden_neuron.png') no-repeat left bottom;
+    text-align: center;
+    margin: auto;
+    cursor: move;
+}
+
+.dd-input-neuron {
+    font-family: Arial;
+    font-weight: bold;
+    font-size: 10px;
+    width: 40px;
+    height: 60px;
+    background: url('../images/input_neuron.png') no-repeat left bottom;
+    text-align: center;
+    margin: auto;
+    cursor: move;
+}
+
+.dd-output-neuron {
+    font-family: Arial;
+    font-weight: bold;
+    font-size: 10px;
+    width: 40px;
+    height: 60px;
+    background: url('../images/output_neuron.png') no-repeat left bottom;
+    text-align: center;
+    margin: auto;
+    cursor: move;
+}
+
+.dd-neuron-layer {
+    font-family: Arial;
+    font-weight: bold;
+    font-size: 10px;
+    width: 72px;
+    height: 96px;
+    background: url('../images/neuron_layer.png') no-repeat left bottom;
+    text-align: center;
+    margin: auto;
+    cursor: move;
+}
+
+
+.dd-hidden-neuron:hover, .dd-input-neuron:hover, .dd-output-neuron:hover, .dd-neuron-layer:hover {
+    opacity: 0.6;
+}
+
+.neuronlayer {
+    font-family: Arial;
+    font-weight: bold;
+    font-size: 10px;
+    border: 1px #aeaeb1 dashed;
+    background-color: #deeaff;
+    width: 100px;
+    height: 100%;
+    text-align: center;
+    margin-left: 5px;
+    display: inline-table;
+}
+
+.neuronlayer-drop-over {
+    font-family: Arial;
+    font-weight: bold;
+    font-size: 10px;
+    border: 1px #aeaeb1 solid;
+    background-color: #9dc7d6;
+    width: 100px;
+    height: 100%;
+    text-align: center;
+    margin-left: 5px;
+    display: inline-table;
+}
+
+.layers-container {
+    height: 100%;
+    padding: 5px;
+    text-align: center;
+}
+
+.layers-container-drop-over {
+    height: 100%;
+    padding: 5px;
+    text-align: center;
+    border: 2px #aeaeb1 dashed;
+}
+
+.x-dd-drag-proxy, .x-dd-drop-nodrop {
+    z-index: 20000 !important;
+}
+/*
+   / DND elements (network structure modification)
+*/

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- activation functions chain -->
+    <bean id="activationFunction" class="org.nnga.tsp.processor.activation.impl.LogisticFunction">
+        <constructor-arg>
+            <bean class="org.nnga.tsp.processor.activation.impl.HyperbolicTangentFunction" />
+        </constructor-arg>
+    </bean>
+
+    <bean id="neuralNetworkProcessor" class="org.nnga.tsp.processor.impl.NeuralNetworkInputProcessor">
+        <property name="neuralNetworkDataProvider" ref="neuralNetworkDataProvider" />
+        <property name="activationFunction" ref="activationFunction" />
+    </bean>
+
+    <bean id="trainingSetParser" class="org.nnga.tsp.parser.impl.TrainingSetParserImpl" />
+
+    <bean id="neuralNetworkTrainingObserver" class="org.nnga.tsp.observer.impl.NeuralNetworkTrainingObserverImpl" />
+
+    <!-- supervised algorithms chain -->
+    <bean id="supervisedTrainingAlgorithm" class="org.nnga.tsp.algorithms.neuralnetwork.impl.BackpropagationAlgorithm">
+        <property name="neuralNetworkProcessor" ref="neuralNetworkProcessor" />
+        <property name="activationFunction" ref="activationFunction" />
+    </bean>
+
+    <bean id="threadPoolExecutorProvider" class="org.nnga.tsp.executor.neuralnetwork.impl.ThreadPoolExecutorProviderImpl" />
+
+    <bean id="trainingExecutor" class="org.nnga.tsp.executor.neuralnetwork.impl.TrainingExecutorImpl">
+        <property name="threadPoolExecutorProvider" ref="threadPoolExecutorProvider" />
+        <property name="neuralNetworkDataProvider" ref="neuralNetworkDataProvider" />
+        <property name="trainingSetDataProvider" ref="trainingSetDataProvider" />
+        <property name="trainingSetParser" ref="trainingSetParser" />
+        <property name="supervisedTrainingAlgorithm" ref="supervisedTrainingAlgorithm" />
+        <property name="neuralNetworkTrainingObserver" ref="neuralNetworkTrainingObserver" />
+    </bean>
+
+</beans>

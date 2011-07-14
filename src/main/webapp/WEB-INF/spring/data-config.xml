@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="hibernateSessionProvider" class="org.nnga.tsp.persistence.config.impl.HibernateSessionProviderImpl">
+        <constructor-arg index="0" value="com.mysql.jdbc.Driver"/>
+        <constructor-arg index="1" value="${jdbc.url}"/>
+        <constructor-arg index="2" value="${jdbc.username}"/>
+        <constructor-arg index="3" value="${jdbc.password}"/>
+    </bean>
+
+    <bean id="neuralNetworkDataProvider" class="org.nnga.tsp.persistence.provider.impl.NeuralNetworkDataProviderImpl" />
+
+    <bean id="trainingSetDataProvider" class="org.nnga.tsp.persistence.provider.impl.TrainingSetDataProviderImpl" />
+
+    <bean id="neuralNetworkDataProcessor" class="org.nnga.tsp.persistence.processor.impl.NeuralNetworkDataProcessorImpl">
+        <property name="neuralNetworkDataProvider" ref="neuralNetworkDataProvider" />
+    </bean>
+
+    <bean id="trainingSetDataProcessor" class="org.nnga.tsp.persistence.processor.impl.TrainingSetDataProcessorImpl">
+        <property name="trainingSetDataProvider" ref="trainingSetDataProvider" />
+    </bean>
+
+</beans>
