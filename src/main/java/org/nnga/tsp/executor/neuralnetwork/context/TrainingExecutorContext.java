@@ -37,7 +37,7 @@ public class TrainingExecutorContext extends Observable implements Runnable {
         this.params = params;
         this.neuralNetworkDataProvider = neuralNetworkDataProvider;
 
-        this.totalError = 10;
+        this.totalError = 0.5;
         this.trainingIteration = 0;
         trainingInProcess = false;
 

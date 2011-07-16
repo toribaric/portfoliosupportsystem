@@ -88,7 +88,7 @@ public class BackpropagationAlgorithm extends AbstractSupervisedTrainingAlgorith
 
             // update SSE - sum squared errors - when SSE becomes lower than error threshold, training is finished
             // also know as squared sum of residuals - or deviation of a sample (calculated output) from it's "theoretical value" (target output)
-            errorSum += ( targetOutput - calculatedOutput ) * ( targetOutput - calculatedOutput );
+            errorSum += (( targetOutput - calculatedOutput ) * ( targetOutput - calculatedOutput )) * 0.5;
 
             // update output neurons weights
             updateNeuronWeights(outputNeuron, neuronInputs, error, learningRate);

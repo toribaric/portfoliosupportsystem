@@ -118,6 +118,9 @@ public class TrainingSetController {
 
         httpServletResponse.setContentType("text/html");
 
+        // for now only "space" and "newline" special chars are supported in these input formats
+        dataDelimiter = dataDelimiter.replace("<space>", "\\s").replace("<newline>", "\n");
+
         String fileData = IOUtils.toString(timeSeriesFile.getInputStream());
 
         try {

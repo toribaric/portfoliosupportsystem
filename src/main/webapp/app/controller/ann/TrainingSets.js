@@ -452,29 +452,7 @@ Ext.define('TSP.controller.ann.TrainingSets', {
                     yField: 'data',
                     listeners: {
                         itemmouseup: function(item) {
-                            if( firstItemSelected != null ) {
-
-                                // add to "chartData" data (from chart's store) from first selected date (start) to last selected (end)
-                                var chartData = new Array();
-                                var start = firstItemSelected.value[0];
-                                var end = item.value[0];
-                                for( var i = start; i <= end; i++ ) {
-                                    var model = store.getAt(i);
-                                    chartData.push(model.get('data'));
-                                }
-
-                                // add collected data from chart to selected training set
-                                if( me.addChartDataToTrainingSet(me, chartData) ) {
-                                    Ext.MessageBox.alert({title:'Done', msg:'Training set record added to selected training set!', icon: Ext.MessageBox.INFO, buttons:Ext.MessageBox.OK});
-                                }
-
-                                firstItemSelected = null;
-
-                            }
-                            else {
-                                firstItemSelected = item;
-                                Ext.MessageBox.alert({title:'Start value selected', msg:'Now select the end value of training set record...', icon: Ext.MessageBox.INFO, buttons:Ext.MessageBox.OK});
-                            }
+                            me.selectChartData(me, item, store);
                         }
                     },
                     tips: {
@@ -496,11 +474,13 @@ Ext.define('TSP.controller.ann.TrainingSets', {
         return chart;
     },
 
-    addChartDataToTrainingSet: function(me, chartData) {
+    selectChartData: function(me, selectedChartItem, chartStore) {
+
+        // add to "chartData" data (from chart's store) from first selected date (start) to last selected (end)
+        var chartData = new Array();
 
         // get selected row from training set grid; if none is selected, return
-        var tsGridSelectedRow = this.getTrainingSetGridSelectedRow();
-
+        var tsGridSelectedRow = me.getTrainingSetGridSelectedRow();
         if( !tsGridSelectedRow ) {
             Ext.MessageBox.alert({title:'Error', msg:'Please select a training set from "Training sets" grid.', icon: Ext.MessageBox.ERROR, buttons:Ext.MessageBox.OK});
             return false;
@@ -509,20 +489,38 @@ Ext.define('TSP.controller.ann.TrainingSets', {
         // get id of selected training set row
         var trainingSetId = tsGridSelectedRow.data.id;
 
+        // get selected training set's number of inputs and outputs to add their sum (total number of fields) to
+        // value of chart selection start, thus forming selection of chart data to add as new training record to selected training set
+        var trainingSetModel = me.getTrainingSetModelById(trainingSetId);
+        var numIoFields = trainingSetModel.get('numInputs') + trainingSetModel.get('numOutputs');
+
+        // define start and end points of chart data selection; if end point is beyond chart's end (or chart's store end), return and display error
+        var start = selectedChartItem.value[0];
+        var end = start + numIoFields - 1;
+        if( end >= chartStore.getCount() ) {
+            Ext.MessageBox.alert({title:'Error', msg:'End point of selected training record is not contained on time series chart.' , icon: Ext.MessageBox.ERROR, buttons:Ext.MessageBox.OK});
+            return false;
+        }
+
+        // add selected data to chartData array
+        for( var i = start; i <= end; i++ ) {
+            var model = chartStore.getAt(i);
+            chartData.push(model.get('data'));
+        }
+
+        // add collected data from chart to selected training set
+        if( me.addChartDataToTrainingSet(me, chartData, trainingSetId) ) {
+            Ext.MessageBox.alert({title:'Done', msg:'Training set record added to selected training set!', icon: Ext.MessageBox.INFO, buttons:Ext.MessageBox.OK});
+        }
+
+    },
+
+    addChartDataToTrainingSet: function(me, chartData, trainingSetId) {
+
         // get training set i/o grid and it's store to which we'll add new data from chart
         var trainingSetIoGridParent = me.getTrainingSetIoGridParent();
         var trainingSetIoGrid = trainingSetIoGridParent.items.get(0);
         var trainingSetIoStore = trainingSetIoGrid.store;
-
-        // get selected training set's number of inputs and outputs to compare their sum (total number of fields) to
-        // chart data length; if they aren't equal, too much or not enough values have been selected from chart, so return
-        var trainingSetModel = me.getTrainingSetModelById(trainingSetId);
-        var numIoFields = trainingSetModel.get('numInputs') + trainingSetModel.get('numOutputs');
-
-        if( numIoFields != chartData.length ) {
-            Ext.MessageBox.alert({title:'Error', msg:'Selected range length must be equal to number of inputs/outputs of selected training set.', icon: Ext.MessageBox.ERROR, buttons:Ext.MessageBox.OK});
-            return false;
-        }
 
         // create new TrainingSetIO record from chart data and add it to TrainingSetIO store
         var newData = [trainingSetId].concat(chartData);
