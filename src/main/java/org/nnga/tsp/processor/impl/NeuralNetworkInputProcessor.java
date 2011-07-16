@@ -8,6 +8,7 @@ import org.nnga.tsp.persistence.provider.NeuralNetworkDataProvider;
 import org.nnga.tsp.processor.NeuralNetworkProcessor;
 import org.nnga.tsp.processor.activation.ActivationFunction;
 import org.nnga.tsp.processor.activation.types.ActivationFunctionType;
+import org.nnga.tsp.utility.Constant;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.util.ArrayList;
@@ -84,10 +85,10 @@ public class NeuralNetworkInputProcessor implements NeuralNetworkProcessor<Doubl
             }
 
             // add the bias - it' usually -1
-            activation += neuronWeights.get(neuron.getNumInputs()).getWeight() * (-1);
+            activation += neuronWeights.get(neuron.getNumInputs()).getWeight() * Constant.BIAS.getValue();
 
             // twist it through sigmoid activation function
-            double neuronOutput = activationFunction.execute(activationFunctionType, activation, 1.0, false);
+            double neuronOutput = activationFunction.execute(activationFunctionType, activation, Constant.ACTIVATION_RESPONSE.getValue(), false);
 
             // memorize neuron output ("squashed" activation)
             neuron.setActivation(neuronOutput);

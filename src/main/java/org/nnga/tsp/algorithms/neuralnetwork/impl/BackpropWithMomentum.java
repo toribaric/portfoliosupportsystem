@@ -13,19 +13,19 @@ import org.nnga.tsp.utility.Constant;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BackpropagationAlgorithm extends AbstractSupervisedTrainingAlgorithm {
+public class BackpropWithMomentum extends AbstractSupervisedTrainingAlgorithm {
 
-    protected BackpropagationAlgorithm() {
+    protected BackpropWithMomentum() {
         super(null);
     }
 
-    protected BackpropagationAlgorithm(SupervisedTrainingAlgorithm next) {
+    protected BackpropWithMomentum(SupervisedTrainingAlgorithm next) {
         super(next);
     }
 
     @Override
     protected boolean isForMe(SupervisedTrainingAlgorithmType supervisedTrainingAlgorithmType) {
-        return supervisedTrainingAlgorithmType.equals(SupervisedTrainingAlgorithmType.BACKPROP);
+        return supervisedTrainingAlgorithmType.equals(SupervisedTrainingAlgorithmType.BACKPROPMOMENTUM);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class BackpropagationAlgorithm extends AbstractSupervisedTrainingAlgorith
             List<Double> calculatedOutputs = neuralNetworkProcessor.process(neuralNetwork, setInputs.get(i), false);
 
             if( calculatedOutputs.size() == 0 ) {
-                throw new IllegalStateException("Backpropagation algorithm: Error in processing neural network inputs!");
+                throw new IllegalStateException("Backpropagation with momentum algorithm: Error in processing neural network inputs!");
             }
 
             // process output layer
@@ -57,6 +57,7 @@ public class BackpropagationAlgorithm extends AbstractSupervisedTrainingAlgorith
         }
 
         return errorSum;
+
     }
 
     private double processOutputLayer(List<NeuronLayer> neuronLayers, ActivationFunctionType activationFunctionType, List<Double> calculatedOutputs, List<Double> targetOutputs, double learningRate, double errorSum) {
@@ -163,22 +164,42 @@ public class BackpropagationAlgorithm extends AbstractSupervisedTrainingAlgorith
 
         List<NeuronWeight> neuronWeights = neuron.getNeuronWeights();
 
+        double momentumValue = 0;
+
         // update neuron weights
-        // formula: Wij += L * Ej * Oi, where Oi is output (activation) from previous layer neuron (hidden or input layer)
+        // formula: Wij += (L * Ej * Oi) + ((Wij - Wijt-1) * MOMENTUM), where Oi is output (activation) from previous layer neuron (hidden or input layer),
+        // Wijt-1 neuron's weight from previous training set iteration for j-th weight and MOMENTUM is a constant value of 0.9
         for( int i = 0; i < neuronWeights.size() - 1; i++ ) {
             double currentWeight = neuronWeights.get(i).getWeight();
+            double previousWeight = neuronWeights.get(i).getPreviousWeight();
+
+            // calculate current weight delta
             double deltaWeight = learningRate * error * neuronInputs.get(i);
-            currentWeight += deltaWeight;
-            neuronWeights.get(i).setWeight(currentWeight);
+
+            // calculate momentum
+            momentumValue = (currentWeight - previousWeight) * Constant.MOMENTUM.getValue();
+
+            // save previousWeight of this weight for use in next training iteration
+            neuronWeights.get(i).setPreviousWeight(currentWeight);
+
+            // calculate updated weight and refresh current weight
+            double newWeight = currentWeight + deltaWeight + momentumValue;
+            neuronWeights.get(i).setWeight(newWeight);
         }
 
         // update bias weight
         double biasWeight = neuronWeights.get(neuronWeights.size() - 1).getWeight();
+        double previousBiasWeight = neuronWeights.get(neuronWeights.size() - 1).getPreviousWeight();
+
         double deltaWeight = learningRate * error * Constant.BIAS.getValue();
-        biasWeight += deltaWeight;
-        neuronWeights.get(neuronWeights.size() - 1).setWeight(biasWeight);
+
+        momentumValue = (biasWeight - previousBiasWeight) * Constant.MOMENTUM.getValue();
+
+        neuronWeights.get(neuronWeights.size() - 1).setPreviousWeight(biasWeight);
+
+        double newBiasWeight = biasWeight + deltaWeight + momentumValue;
+        neuronWeights.get(neuronWeights.size() - 1).setWeight(newBiasWeight);
 
     }
-
 
 }

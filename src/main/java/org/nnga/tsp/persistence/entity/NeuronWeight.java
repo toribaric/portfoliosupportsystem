@@ -13,6 +13,8 @@ public class NeuronWeight implements PersistenceEntity {
 	private int id;
     @Column(name = "Weight")
     private double weight;
+    @Transient
+    private double previousWeight = 0;
 
     @ManyToOne
     @JoinColumn(name = "NeuronId")
@@ -32,6 +34,14 @@ public class NeuronWeight implements PersistenceEntity {
 
     public void setWeight(double weight) {
         this.weight = weight;
+    }
+
+    public double getPreviousWeight() {
+        return previousWeight;
+    }
+
+    public void setPreviousWeight(double previousWeight) {
+        this.previousWeight = previousWeight;
     }
 
     @JsonIgnore

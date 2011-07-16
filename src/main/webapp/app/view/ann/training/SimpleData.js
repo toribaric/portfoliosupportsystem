@@ -82,6 +82,15 @@ Ext.define('TSP.view.ann.training.SimpleData', {
 
     },
 
+    listeners: {
+        beforeclose: function(panel, options) {
+            if( this.closeMode == 'hide' ) {
+                this.hide();
+                return false;
+            }
+        }
+    },
+
     setCloseMode: function(closeMode) {
         this.closeMode = closeMode;
     },

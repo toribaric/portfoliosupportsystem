@@ -146,6 +146,15 @@ Ext.define('TSP.view.ann.training.Data', {
 
     },
 
+    listeners: {
+        beforeclose: function(panel, options) {
+            if( this.closeMode == 'hide' ) {
+                this.hide();
+                return false;
+            }
+        }
+    },
+
     setCloseMode: function(closeMode) {
         this.closeMode = closeMode;
     },
