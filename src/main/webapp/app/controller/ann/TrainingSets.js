@@ -47,6 +47,9 @@ Ext.define('TSP.controller.ann.TrainingSets', {
             'tstimeseries button[action=resetTimeSeriesForm]': {
                 click: this.resetTimeSeriesForm
             },
+            'tstimeseries button[action=generateTsRecords]': {
+                click: this.generateTrainingSetRecordsFromChartData
+            },
             'tslist': {
                 selectionchange: this.createTrainingSetIoGrid
             }
@@ -390,6 +393,9 @@ Ext.define('TSP.controller.ann.TrainingSets', {
                     var chart = me.assembleChart(me, store);
                     me.addChartToContainer(chart);
 
+                    // show training set records generator form
+                    me.toggleTimeSeriesTsRecGeneratorForm();
+
                 },
                 failure: function(form, action) {
                     Ext.MessageBox.alert({title:'Failed', msg:'Failed processing data: ' + action.result.error, icon: Ext.MessageBox.ERROR, buttons:Ext.MessageBox.OK});
@@ -399,9 +405,66 @@ Ext.define('TSP.controller.ann.TrainingSets', {
 
     },
 
+    generateTrainingSetRecordsFromChartData: function() {
+
+        // get id of selected training set row - if it's false, no training set has been selected
+        var trainingSetId = this.getSelectedTrainingSetId();
+        if( trainingSetId == false ) {
+            return;
+        }
+
+        // get form, check if field values are valid and get those values
+        var form = this.getTimesSeriesTsRecGeneratorForm();
+        if( !form.isValid() ) {
+            return;
+        }
+        var numRecords = form.findField('numTsRecords').getValue();
+        var frequency = form.findField('samplingFrequency').getValue();
+
+        // get chart's store which contains time series data
+        var chartContainer = this.getChartContainer();
+        var chart = chartContainer.items.get(0);
+        var chartStore = chart.store;
+
+        // add time series data to "timeSeries" array
+        var timeSeries = new Array();
+        for( var i = 0; i < chartStore.getCount(); i++ ) {
+            var model = chartStore.getAt(i);
+            timeSeries.push(model.get('data'));
+        }
+
+        // send time series data and other params to server which will generate selected training set
+        // records from them
+        var me = this;
+        Ext.Ajax.request({
+            url: 'ts/generateTrainingSetFromTimeSeries',
+            params: {
+                trainingSetId: trainingSetId,
+                timeSeries: timeSeries,
+                numRecords: numRecords,
+                frequency: frequency
+            },
+            success: function ( result, request ) {
+                var response = JSON.parse(result.responseText);
+                if( response.success == true ) {
+                    // reload training set IOs store if successful
+                    var trainingSetIoStore = me.getSelectedTrainingSetIoStore();
+                    trainingSetIoStore.load();
+                    Ext.MessageBox.alert({title:'Done', msg:'Training set records generated successfully!', icon: Ext.MessageBox.INFO, buttons:Ext.MessageBox.OK});
+                }
+                else {
+                    Ext.MessageBox.alert({title:'Failed', msg: 'Failed generating training set records: ' + response.errorMsg, icon: Ext.MessageBox.ERROR, buttons:Ext.MessageBox.OK});
+                }
+            },
+            failure: function ( result, request) {
+                Ext.MessageBox.alert('Failed', 'Failed, response data: ' + result.responseText);
+            }
+        });
+
+    },
+
     addChartToContainer: function(chart) {
-        var tsTimeSeries = this.getTsTimeSeries();
-        var chartContainer = tsTimeSeries.items.get('chartContainer');
+        var chartContainer = this.getChartContainer();
         chartContainer.removeAll(true);
         chartContainer.items.add(chart);
         chartContainer.doLayout();
@@ -479,15 +542,11 @@ Ext.define('TSP.controller.ann.TrainingSets', {
         // add to "chartData" data (from chart's store) from first selected date (start) to last selected (end)
         var chartData = new Array();
 
-        // get selected row from training set grid; if none is selected, return
-        var tsGridSelectedRow = me.getTrainingSetGridSelectedRow();
-        if( !tsGridSelectedRow ) {
-            Ext.MessageBox.alert({title:'Error', msg:'Please select a training set from "Training sets" grid.', icon: Ext.MessageBox.ERROR, buttons:Ext.MessageBox.OK});
+        // get id of selected training set row - if it's false, no training set has been selected
+        var trainingSetId = me.getSelectedTrainingSetId();
+        if( trainingSetId == false ) {
             return false;
         }
-
-        // get id of selected training set row
-        var trainingSetId = tsGridSelectedRow.data.id;
 
         // get selected training set's number of inputs and outputs to add their sum (total number of fields) to
         // value of chart selection start, thus forming selection of chart data to add as new training record to selected training set
@@ -518,9 +577,7 @@ Ext.define('TSP.controller.ann.TrainingSets', {
     addChartDataToTrainingSet: function(me, chartData, trainingSetId) {
 
         // get training set i/o grid and it's store to which we'll add new data from chart
-        var trainingSetIoGridParent = me.getTrainingSetIoGridParent();
-        var trainingSetIoGrid = trainingSetIoGridParent.items.get(0);
-        var trainingSetIoStore = trainingSetIoGrid.store;
+        var trainingSetIoStore = me.getSelectedTrainingSetIoStore();
 
         // create new TrainingSetIO record from chart data and add it to TrainingSetIO store
         var newData = [trainingSetId].concat(chartData);
@@ -532,13 +589,53 @@ Ext.define('TSP.controller.ann.TrainingSets', {
         return true;
     },
 
-    getTimeSeriesForm: function() {
+    getSelectedTrainingSetId: function() {
+        // get selected row from training set grid; if none is selected, return
+        var tsGridSelectedRow = this.getTrainingSetGridSelectedRow();
+        if( !tsGridSelectedRow ) {
+            Ext.MessageBox.alert({title:'Error', msg:'Please select a training set from "Training sets" grid.', icon: Ext.MessageBox.ERROR, buttons:Ext.MessageBox.OK});
+            return false;
+        }
+        // return id of selected training set row
+        return tsGridSelectedRow.data.id;
+    },
+
+    getSelectedTrainingSetIoStore: function() {
+        var trainingSetIoGridParent = this.getTrainingSetIoGridParent();
+        var trainingSetIoGrid = trainingSetIoGridParent.items.get(0);
+        return trainingSetIoGrid.store;
+    },
+
+    getChartContainer: function() {
         var tsTimeSeries = this.getTsTimeSeries();
-        return tsTimeSeries.items.get('createSetForm').getForm();
+        return tsTimeSeries.items.get('chartContainer');
+    },
+
+    getTimeSeriesFormsVbox: function() {
+        var tsTimeSeries = this.getTsTimeSeries();
+        return tsTimeSeries.items.get('timeSeriesForms');
+    },
+
+    getTimeSeriesForm: function() {
+        var formsVbox = this.getTimeSeriesFormsVbox();
+        return formsVbox.items.get('createSetForm').getForm();
     },
 
     resetTimeSeriesForm: function() {
         this.getTimeSeriesForm().reset();
+    },
+
+    getTimesSeriesTsRecGeneratorForm: function() {
+        var formsVbox = this.getTimeSeriesFormsVbox();
+        return formsVbox.items.get('generateSetRecordsForm').getForm();
+    },
+
+    toggleTimeSeriesTsRecGeneratorForm: function() {
+        var formsVbox = this.getTimeSeriesFormsVbox();
+        var form = formsVbox.items.get('generateSetRecordsForm');
+        if( !form.isVisible() ) {
+            form.show();
+        }
     }
     /*
      *  /Time series upload / training set record creation functions

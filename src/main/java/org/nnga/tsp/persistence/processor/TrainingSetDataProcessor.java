@@ -12,4 +12,5 @@ public interface TrainingSetDataProcessor {
     List<Map<String, Object>> getTrainingSetIOs(int trainingSetId);
     void updateTrainingSetIOs(String json) throws Exception;
     String processAndReturnTimesSeries(String fromData, String dataDelimiter, String fileData) throws Exception;
+    void generateTrainingSetFromTimeSeries(int trainingSetId, String[] timeSeries, int numRecords, int frequency) throws Exception;
 }

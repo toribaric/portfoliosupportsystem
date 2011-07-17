@@ -133,6 +133,23 @@ public class TrainingSetController {
 
     }
 
+    @RequestMapping( value = "generateTrainingSetFromTimeSeries", method = {RequestMethod.POST} )
+    public String generateTrainingSetFromTimeSeries( Model model,
+                                                   @RequestParam("trainingSetId") int trainingSetId,
+                                                   @RequestParam("timeSeries") String[] timeSeries,
+                                                   @RequestParam("numRecords") int numRecords,
+                                                   @RequestParam("frequency") int frequency) {
+        try {
+            trainingSetDataProcessor.generateTrainingSetFromTimeSeries(trainingSetId, timeSeries, numRecords, frequency);
+            model.addAttribute("success", true);
+        }
+        catch( Exception e ) {
+            model.addAttribute("success", false);
+            model.addAttribute("errorMsg", e.getMessage());
+        }
+        return "jsonView";
+    }
+
     @Autowired
     public void setTrainingSetDataProcessor(TrainingSetDataProcessor trainingSetDataProcessor) {
         this.trainingSetDataProcessor = trainingSetDataProcessor;

@@ -220,6 +220,66 @@ public class TrainingSetDataProcessorImpl implements TrainingSetDataProcessor {
         return stringBuilder.toString();
     }
 
+    @Override
+    public void generateTrainingSetFromTimeSeries(int trainingSetId, String[] timeSeries, int numRecords, int frequency) throws Exception {
+
+        TrainingSet trainingSet = trainingSetDataProvider.getById(trainingSetId);
+        if( trainingSet == null ) {
+            throw new IllegalArgumentException("TrainingSet with id \"" + trainingSetId + "\" was not found");
+        }
+        trainingSet.getTrainingSetIOs().clear();
+
+        // number of inputs and outputs; length of training set record
+        int numInputsOutputs = trainingSet.getNumInputs() + trainingSet.getNumOutputs();
+
+        // check if time series is long enough to fit into one training set record at selected training set's record length (inputs + outputs),
+        // at selected sampling frequency; ts record length (numInputsOutputs) is diminished by 1 in this formula because first field value
+        // is the first value from time series, so we don't have to skip "frequency" places to get to it - because of that we must take out
+        // one "frequency slice", and that's exactly what that -1 is doing here
+        if( frequency * (numInputsOutputs - 1) >= timeSeries.length ) {
+            throw new IllegalStateException("Time series is too small for filling all inputs/outputs of selected training set at current sampling frequency. Try entering lower sampling frequency.");
+        }
+
+        // iterate through time series data and generate "numRecords" training set records
+        int start = 0;
+        for( int i = 0; i < numRecords; i++ ) {
+
+            String inputs = "", outputs = "";
+
+            // this loop forms new record from time series data, from "start" to "end" points of time series data,
+            // with selected sampling frequency
+            int end = start + (numInputsOutputs * frequency) - (frequency - 1); // frequency - 1; because first field is at start of current sampling part, which means we have one frequency slice less
+            for( int j = start, inputsCount = 0; j < end; j += frequency, inputsCount++ ) {
+                if( inputsCount < trainingSet.getNumInputs() ) {
+                    inputs += timeSeries[j] + " ";
+                }
+                else {
+                    outputs += timeSeries[j] + " ";
+                }
+            }
+
+            TrainingSetIO trainingSetIO = new TrainingSetIO();
+            trainingSetIO.setInputs(inputs.trim());
+            trainingSetIO.setOutputs(outputs.trim());
+            trainingSet.addTrainingSetIO(trainingSetIO);
+
+            inputs = outputs = "";
+
+            // when we come to the end of time series, we go back to the start of it until "numRecords" is achieved
+            if( end >= timeSeries.length ) {
+                start = 0;
+            }
+            else {
+                start++;
+            }
+
+        }
+
+        // persist newly created records
+        trainingSetDataProvider.save(trainingSet);
+
+    }
+
     @Required
     public void setTrainingSetDataProvider(TrainingSetDataProvider trainingSetDataProvider) {
         this.trainingSetDataProvider = trainingSetDataProvider;
