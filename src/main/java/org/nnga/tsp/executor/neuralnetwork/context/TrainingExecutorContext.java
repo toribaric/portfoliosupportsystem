@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.nnga.tsp.algorithms.neuralnetwork.SupervisedTrainingAlgorithm;
 import org.nnga.tsp.persistence.entity.NeuralNetwork;
 import org.nnga.tsp.persistence.provider.NeuralNetworkDataProvider;
+import org.nnga.tsp.validator.NeuralNetworkValidator;
 
 import java.util.Map;
 import java.util.Observable;
@@ -16,6 +17,7 @@ public class TrainingExecutorContext extends Observable implements Runnable {
 
     private NeuralNetwork neuralNetwork;
     private SupervisedTrainingAlgorithm supervisedTrainingAlgorithm;
+    private NeuralNetworkValidator neuralNetworkValidator;
     private TrainingExecutorParamsContext params;
     private NeuralNetworkDataProvider neuralNetworkDataProvider;
 
@@ -23,9 +25,13 @@ public class TrainingExecutorContext extends Observable implements Runnable {
     private int trainingIteration;
     private boolean trainingInProcess;
 
+    // additional data given when validation set is used
+    private double validationError;
+    private double rSquared;
+
     private Map<Integer, TrainingExecutorContext> executingContexts;
 
-    public TrainingExecutorContext(NeuralNetwork neuralNetwork, SupervisedTrainingAlgorithm supervisedTrainingAlgorithm, TrainingExecutorParamsContext params, NeuralNetworkDataProvider neuralNetworkDataProvider, Map<Integer, TrainingExecutorContext> executingContexts) {
+    public TrainingExecutorContext(NeuralNetwork neuralNetwork, SupervisedTrainingAlgorithm supervisedTrainingAlgorithm, NeuralNetworkValidator neuralNetworkValidator, TrainingExecutorParamsContext params, NeuralNetworkDataProvider neuralNetworkDataProvider, Map<Integer, TrainingExecutorContext> executingContexts) {
         notNull(neuralNetwork);
         notNull(params);
         notNull(supervisedTrainingAlgorithm);
@@ -34,12 +40,16 @@ public class TrainingExecutorContext extends Observable implements Runnable {
 
         this.neuralNetwork = neuralNetwork;
         this.supervisedTrainingAlgorithm = supervisedTrainingAlgorithm;
+        this.neuralNetworkValidator = neuralNetworkValidator;
         this.params = params;
         this.neuralNetworkDataProvider = neuralNetworkDataProvider;
 
         this.totalError = 0.5;
         this.trainingIteration = 0;
         trainingInProcess = false;
+
+        this.validationError = 0.0;
+        this.rSquared = 0.0;
 
         // add this context to executing context so it can be stopped manually
         this.executingContexts = executingContexts;
@@ -58,7 +68,7 @@ public class TrainingExecutorContext extends Observable implements Runnable {
         /*
          * TODO: thread sync of algorithm execution and ann persistence
          */
-        while( trainingInProcess ) {
+        for( int i = 0; trainingInProcess; i++ ) {
 
             // execute training algorithm
             try {
@@ -70,6 +80,23 @@ public class TrainingExecutorContext extends Observable implements Runnable {
                 LOGGER.info("Error in training algorithm execution (neural network " + neuralNetwork.getName() + "): " + e.getMessage(), e);
                 trainingInProcess = false;
                 return;
+            }
+
+            // perform validation of so-far-trained network (if configured)
+            if( params.getValidationFrequency() != null && params.getValidationInputs() != null && params.getValidationOutputs() != null ) {
+                if( i >= params.getValidationFrequency() ) {
+                i = 0;
+                    try {
+                        neuralNetworkValidator.validate(neuralNetwork, params.getValidationInputs(), params.getValidationOutputs());
+                        validationError = neuralNetworkValidator.getValidationError();
+                        rSquared = neuralNetworkValidator.getRSquared();
+                    } catch (Exception e) {
+                        /*
+                         * TODO: user must ve notified of this situation!
+                         */
+                        LOGGER.info("Error in network validation (neural network " + neuralNetwork.getName() + "): " + e.getMessage(), e);
+                    }
+                }
             }
 
             // iteration finished
@@ -134,5 +161,13 @@ public class TrainingExecutorContext extends Observable implements Runnable {
 
     public boolean isTrainingInProcess() {
         return trainingInProcess;
+    }
+
+    public double getValidationError() {
+        return validationError;
+    }
+
+    public double getRSquared() {
+        return rSquared;
     }
 }

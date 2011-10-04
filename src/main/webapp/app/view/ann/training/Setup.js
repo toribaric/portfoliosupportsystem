@@ -5,7 +5,7 @@ Ext.define('TSP.view.ann.training.Setup', {
     title : 'Setup training',
     layout: 'fit',
     autoShow: false,
-    height: 270,
+    height: 384,
     width: 310,
     modal: true,
 
@@ -112,6 +112,67 @@ Ext.define('TSP.view.ann.training.Setup', {
                                         combo.store.load();
                                     }
                                 }
+                            },
+                            {
+                                xtype: 'container',
+                                layoutConfig : {
+                                    type : 'vbox',
+                                    align : 'stretch',
+                                    pack : 'start'
+                                },
+                                items: [
+                                    {
+                                        xtype: 'checkbox',
+                                        name: 'useValidation',
+                                        boxLabel: 'Use network validation',
+                                        hideLabel: false,
+                                        checked: false,
+                                        margin: '0 8 0 0',
+                                        handler: function(me, checked) {
+                                            var fieldSet = me.ownerCt.items.get('validationParams');
+                                            fieldSet.setDisabled(!checked);
+                                            fieldSet.el.animate({opacity: !checked ? .3 : 1});
+                                        }
+                                    },
+                                    {
+                                        xtype:'fieldset',
+                                        itemId: 'validationParams',
+                                        title: 'Set validation parameters',
+                                        layout: 'anchor',
+                                        disabled: true,
+                                        defaults: {
+                                            labelAlign: 'left',
+                                            labelWidth: 80,
+                                            anchor: '100%'
+                                        },
+                                        items: [
+                                            {
+                                                xtype: 'combo',
+                                                fieldLabel: 'Validation set',
+                                                name: 'validationSet',
+                                                itemId: 'validationSet',
+                                                displayField: 'name',
+                                                valueField: 'id',
+                                                queryMode: 'remote',
+                                                store: this.trainingSetStore,
+                                                listeners: {
+                                                    beforedestroy: function(combo) {
+                                                        combo.store.load();
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                xtype: 'textfield',
+                                                itemId: 'validationFrequency',
+                                                name: 'validationFrequency',
+                                                width: 150,
+                                                fieldLabel: 'Frequency',
+                                                allowBlank: false,
+                                                value: 50
+                                            }
+                                        ]
+                                    }
+                                ]
                             },
                             {
                                 xtype: 'checkboxfield',

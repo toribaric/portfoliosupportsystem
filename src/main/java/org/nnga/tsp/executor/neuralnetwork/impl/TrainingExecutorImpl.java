@@ -12,6 +12,7 @@ import org.nnga.tsp.persistence.entity.NeuralNetwork;
 import org.nnga.tsp.persistence.entity.TrainingSet;
 import org.nnga.tsp.persistence.provider.NeuralNetworkDataProvider;
 import org.nnga.tsp.persistence.provider.TrainingSetDataProvider;
+import org.nnga.tsp.validator.NeuralNetworkValidator;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.util.*;
@@ -27,21 +28,33 @@ public class TrainingExecutorImpl implements TrainingExecutor {
     private TrainingSetDataProvider trainingSetDataProvider;
     private TrainingSetParser trainingSetParser;
     private SupervisedTrainingAlgorithm supervisedTrainingAlgorithm;
+    private NeuralNetworkValidator neuralNetworkValidator;
     private NeuralNetworkTrainingObserver neuralNetworkTrainingObserver;
     private Map<Integer, TrainingExecutorContext> executingContexts = new ConcurrentHashMap<Integer, TrainingExecutorContext>();
 
     @Override
-    public void train(int neuralNetworkId, int trainingSetId, SupervisedTrainingAlgorithmType supervisedTrainingAlgorithmType, double learningRate, double errorThreshold, Integer maxIterations) {
+    public void train(int neuralNetworkId, int trainingSetId, Integer validationSetId, Integer validationFrequency, SupervisedTrainingAlgorithmType supervisedTrainingAlgorithmType, double learningRate, double errorThreshold, Integer maxIterations) {
         NeuralNetwork neuralNetwork = neuralNetworkDataProvider.getById(neuralNetworkId);
         TrainingSet trainingSet = trainingSetDataProvider.getById(trainingSetId);
 
+        // get training set inputs and outputs
         Map<String, List<List<Double>>> trainingData = trainingSetParser.getTrainingData(trainingSet);
         List<List<Double>> setInputs = trainingData.get("inputs");
         List<List<Double>> setOutputs = trainingData.get("outputs");
 
-        TrainingExecutorParamsContext params = new TrainingExecutorParamsContext(setInputs, setOutputs, supervisedTrainingAlgorithmType, learningRate, errorThreshold, maxIterations);
+        // get validation set inputs and outputs
+        List<List<Double>> validationInputs = null;
+        List<List<Double>> validationOutputs = null;
+        if( validationSetId != null ) {
+            TrainingSet validationSet = trainingSetDataProvider.getById(validationSetId);
+            Map<String, List<List<Double>>> validationData = trainingSetParser.getTrainingData(validationSet);
+            validationInputs = validationData.get("inputs");
+            validationOutputs = validationData.get("outputs");
+        }
 
-        train(new TrainingExecutorContext(neuralNetwork, supervisedTrainingAlgorithm, params, neuralNetworkDataProvider, executingContexts));
+        TrainingExecutorParamsContext params = new TrainingExecutorParamsContext(setInputs, setOutputs, validationInputs, validationOutputs, validationFrequency, supervisedTrainingAlgorithmType, learningRate, errorThreshold, maxIterations);
+
+        train(new TrainingExecutorContext(neuralNetwork, supervisedTrainingAlgorithm, neuralNetworkValidator, params, neuralNetworkDataProvider, executingContexts));
     }
 
     @Override
@@ -86,6 +99,11 @@ public class TrainingExecutorImpl implements TrainingExecutor {
     @Required
     public void setSupervisedTrainingAlgorithm(SupervisedTrainingAlgorithm supervisedTrainingAlgorithm) {
         this.supervisedTrainingAlgorithm = supervisedTrainingAlgorithm;
+    }
+
+    @Required
+    public void setNeuralNetworkValidator(NeuralNetworkValidator neuralNetworkValidator) {
+        this.neuralNetworkValidator = neuralNetworkValidator;
     }
 
     @Required

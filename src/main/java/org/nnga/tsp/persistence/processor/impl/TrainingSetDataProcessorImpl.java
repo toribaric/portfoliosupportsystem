@@ -4,12 +4,10 @@ import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
-import org.nnga.tsp.parser.TrainingSetParser;
 import org.nnga.tsp.persistence.entity.TrainingSet;
 import org.nnga.tsp.persistence.entity.TrainingSetIO;
 import org.nnga.tsp.persistence.processor.TrainingSetDataProcessor;
 import org.nnga.tsp.persistence.provider.TrainingSetDataProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.io.IOException;
@@ -284,5 +282,4 @@ public class TrainingSetDataProcessorImpl implements TrainingSetDataProcessor {
     public void setTrainingSetDataProvider(TrainingSetDataProvider trainingSetDataProvider) {
         this.trainingSetDataProvider = trainingSetDataProvider;
     }
-
 }

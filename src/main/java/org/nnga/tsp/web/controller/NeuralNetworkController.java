@@ -94,14 +94,16 @@ public class NeuralNetworkController {
                          @RequestParam("errorThreshold") double errorThreshold,
                          @RequestParam("learningAlgorithm") String learningAlgorithm,
                          @RequestParam(value = "maxIterations", required = false) Integer maxIterations,
-                         @RequestParam("trainingSet") int trainingSetId ) {
+                         @RequestParam("trainingSet") int trainingSetId,
+                         @RequestParam(value = "validationSet", required = false) Integer validationSetId,
+                         @RequestParam(value = "validationFrequency", required = false) Integer validationFrequency ) {
         try {
             /*
              * TODO: maybe would be wiser to clear observer map when stopping training to clean memory
              */
             neuralNetworkTrainingObserver.clearTrainingData(neuralNetworkId);
             neuralNetworkDataProcessor.randomizeWeights(neuralNetworkId);
-            trainingExecutor.train(neuralNetworkId, trainingSetId, SupervisedTrainingAlgorithmType.valueOf(learningAlgorithm), learningRate, errorThreshold, maxIterations);
+            trainingExecutor.train(neuralNetworkId, trainingSetId, validationSetId, validationFrequency, SupervisedTrainingAlgorithmType.valueOf(learningAlgorithm), learningRate, errorThreshold, maxIterations);
             model.addAttribute("success", true);
         } catch (Exception e) {
             model.addAttribute("success", false);
@@ -169,4 +171,5 @@ public class NeuralNetworkController {
     public void setNeuralNetworkProcessor(NeuralNetworkProcessor<Double> neuralNetworkProcessor) {
         this.neuralNetworkProcessor = neuralNetworkProcessor;
     }
+
 }

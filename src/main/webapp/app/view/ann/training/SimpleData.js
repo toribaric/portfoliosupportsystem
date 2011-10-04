@@ -5,7 +5,7 @@ Ext.define('TSP.view.ann.training.SimpleData', {
     title : 'Training data',
     layout: 'fit',
     autoShow: false,
-    height: 140,
+    height: 190,
     width: 280,
     modal: false,
     maximizable: true,
@@ -42,16 +42,31 @@ Ext.define('TSP.view.ann.training.SimpleData', {
                                 xtype: 'displayfield',
                                 itemId: 'iteration',
                                 fieldLabel: 'Iteration',
-                                labelWidth: 60,
+                                labelWidth: 90,
                                 margin: '0 0 5 0',
                                 value: 1
                             },
                             {
                                 xtype: 'displayfield',
                                 itemId: 'totalError',
-                                labelWidth: 60,
+                                labelWidth: 90,
                                 fieldLabel: 'Total error',
                                 value: 1.5
+                            },
+                            {
+                                xtype: 'displayfield',
+                                itemId: 'validationError',
+                                fieldLabel: 'Validation error',
+                                labelWidth: 90,
+                                margin: '0 0 5 0',
+                                value: 0.0
+                            },
+                            {
+                                xtype: 'displayfield',
+                                itemId: 'rSquared',
+                                labelWidth: 90,
+                                fieldLabel: 'R^2',
+                                value: 0.0
                             }
                         ]
                     }

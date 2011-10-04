@@ -169,7 +169,7 @@ Ext.define('TSP.controller.ann.Training', {
         var trainingDataWin = Ext.create('TSP.view.ann.training.SimpleData', Ext.apply({id: trainingDataWinId, neuralNetworkId: neuralNetworkId}));
         trainingDataWin.setTitle('Training data for network "' + neuralNetworkName + '"');
         trainingDataWin.setWidth(280);
-        trainingDataWin.setHeight(140);
+        trainingDataWin.setHeight(190);
         trainingDataWin.show();
         trainingDataWin.center();
         return trainingDataWin;
@@ -225,6 +225,8 @@ Ext.define('TSP.controller.ann.Training', {
         var displayFields = trainingDataWin.items.get(0).items.get(0);
         var iterationField = displayFields.items.get('iteration');
         var totalErrorField = displayFields.items.get('totalError');
+        var validationErrorField = displayFields.items.get('validationError');
+        var rSquaredField = displayFields.items.get('rSquared');
 
         // fill data to load to chart's store and fields
         var chartData = this.getChartData(trainingData);
@@ -232,6 +234,8 @@ Ext.define('TSP.controller.ann.Training', {
         // set fields data (current iteration and error - or last ones in array)
         iterationField.setValue(chartData[chartData.length - 1].iteration);
         totalErrorField.setValue(chartData[chartData.length - 1].error.toFixed(8));
+        validationErrorField.setValue(trainingData.validationError.toFixed(8));
+        rSquaredField.setValue(trainingData.rSquared.toFixed(8));
 
         // if chart doesn't exist on window simple data window is displayed; don't feed data
         if( chart != undefined ) {
