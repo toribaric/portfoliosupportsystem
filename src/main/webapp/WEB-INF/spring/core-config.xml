@@ -23,6 +23,12 @@
     <bean id="supervisedTrainingAlgorithm" class="org.nnga.tsp.algorithms.neuralnetwork.impl.BackpropagationAlgorithm">
         <constructor-arg>
             <bean class="org.nnga.tsp.algorithms.neuralnetwork.impl.BackpropWithMomentum">
+                <constructor-arg>
+                    <bean class="org.nnga.tsp.algorithms.neuralnetwork.impl.ResilientPropagation">
+                        <property name="neuralNetworkProcessor" ref="neuralNetworkProcessor" />
+                        <property name="activationFunction" ref="activationFunction" />
+                    </bean>
+                </constructor-arg>
                 <property name="neuralNetworkProcessor" ref="neuralNetworkProcessor" />
                 <property name="activationFunction" ref="activationFunction" />
             </bean>

@@ -234,8 +234,10 @@ Ext.define('TSP.controller.ann.Training', {
         // set fields data (current iteration and error - or last ones in array)
         iterationField.setValue(chartData[chartData.length - 1].iteration);
         totalErrorField.setValue(chartData[chartData.length - 1].error.toFixed(8));
-        validationErrorField.setValue(trainingData.validationError.toFixed(8));
-        rSquaredField.setValue(trainingData.rSquared.toFixed(8));
+        if( trainingData.validationError != NaN && trainingData.rSquared != NaN ) {
+            validationErrorField.setValue(trainingData.validationError.toFixed(8));
+            rSquaredField.setValue(trainingData.rSquared.toFixed(8));
+        }
 
         // if chart doesn't exist on window simple data window is displayed; don't feed data
         if( chart != undefined ) {

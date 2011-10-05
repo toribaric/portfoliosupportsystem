@@ -65,7 +65,8 @@ Ext.define('TSP.view.ann.training.Setup', {
                                     fields : ['name', 'value'],
                                     data   : [
                                         {name : 'Backprop',   value: 'BACKPROP'},
-                                        {name : 'Backprop with momentum',   value: 'BACKPROPMOMENTUM'}
+                                        {name : 'Backprop with momentum',   value: 'BACKPROPMOMENTUM'},
+                                        {name : 'Resilient propagation',   value: 'RPROP'}
                                     ]
                                 }),
                                 allowBlank: false
