@@ -129,6 +129,7 @@ public class TrainingExecutorContext extends Observable implements Runnable {
 
         // save new, trained network (weights precisely)
         try {
+            neuralNetwork.setR2(rSquared);
             neuralNetworkDataProvider.save(neuralNetwork);
         } catch (Exception e) {
             LOGGER.info("Error in training algorithm execution (neural network " + neuralNetwork.getName() + "): " + e.getMessage(), e);

@@ -1,5 +1,6 @@
 package org.nnga.tsp.persistence.entity;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -27,8 +28,12 @@ public class NeuralNetwork implements PersistenceEntity {
     private int numHiddenLayers;
     @Column(name = "ActivationFunction")
     private String activationFunction;
+    @Column(name = "R2")
+    private Double r2;
     @Column(name = "Trained")
     private boolean trained;
+    @Column(name = "ShareId")
+    private Integer shareId;
 
     @OneToMany(mappedBy = "neuralNetwork", cascade = CascadeType.ALL, fetch=FetchType.EAGER)
     @OrderBy("id ASC")
@@ -111,6 +116,14 @@ public class NeuralNetwork implements PersistenceEntity {
         this.activationFunction = activationFunction;
     }
 
+    public Double getR2() {
+        return r2;
+    }
+
+    public void setR2(Double r2) {
+        this.r2 = r2;
+    }
+
     public boolean isTrained() {
         return trained;
     }
@@ -133,6 +146,15 @@ public class NeuralNetwork implements PersistenceEntity {
     public void addNeuronLayer(NeuronLayer neuronLayer) {
         neuronLayer.setNeuralNetwork(this);
         neuronLayers.add(neuronLayer);
+    }
+
+    @JsonIgnore
+    public Integer getShareId() {
+        return shareId;
+    }
+
+    public void setShareId(Integer shareId) {
+        this.shareId = shareId;
     }
 
 }

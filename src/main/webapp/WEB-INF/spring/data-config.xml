@@ -10,6 +10,8 @@
         <constructor-arg index="3" value="${jdbc.password}"/>
     </bean>
 
+    <bean id="shareDataProvider" class="org.nnga.tsp.persistence.provider.impl.ShareDataProviderImpl" />
+
     <bean id="neuralNetworkDataProvider" class="org.nnga.tsp.persistence.provider.impl.NeuralNetworkDataProviderImpl" />
 
     <bean id="trainingSetDataProvider" class="org.nnga.tsp.persistence.provider.impl.TrainingSetDataProviderImpl" />

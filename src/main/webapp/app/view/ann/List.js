@@ -11,7 +11,7 @@ Ext.define('TSP.view.ann.List', {
     initComponent: function() {
 
         this.columns = [
-            {header: 'ID', dataIndex: 'id', width: 50},
+            {header: 'ID', dataIndex: 'id', width: 40},
             {header: 'Name', dataIndex: 'name', flex: 1},
             {header: 'Description', dataIndex: 'description', width: 300},
             {header: 'Num. of input neurons', dataIndex: 'numInputNeurons', flex: 1},
@@ -19,9 +19,17 @@ Ext.define('TSP.view.ann.List', {
             {header: 'Num. of hidden layers', dataIndex: 'numHiddenLayers', flex: 1},
             {header: 'Activation function', dataIndex: 'activationFunction', flex: 1},
             {
+                header: 'R^2',
+                dataIndex: 'r2',
+                width: 90,
+                renderer: function(value) {
+                    return value.toFixed(8);
+                }
+            },
+            {
                 header: 'Trained',
                 dataIndex: 'trained',
-                flex: 1,
+                width: 60,
                 renderer: function(value) {
                     if( value ) {
                         return '<img src="images/icons/accept.png" />';

@@ -53,4 +53,9 @@
         <property name="neuralNetworkTrainingObserver" ref="neuralNetworkTrainingObserver" />
     </bean>
 
+    <bean id="forecastRequestProcessor" class="org.nnga.tsp.processor.impl.ForecastRequestProcessorImpl">
+        <property name="shareDataProvider" ref="shareDataProvider" />
+        <property name="neuralNetworkProcessor" ref="neuralNetworkProcessor" />
+    </bean>
+
 </beans>
