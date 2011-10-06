@@ -4,7 +4,7 @@
     <groupId>org.nnga</groupId>
     <artifactId>time-series-prediction</artifactId>
     <packaging>jar</packaging>
-    <version>0.1</version>
+    <version>alpha1</version>
     <name>time-series-prediction</name>
 
 	<properties>
