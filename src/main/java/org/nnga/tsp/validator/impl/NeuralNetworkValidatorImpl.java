@@ -15,7 +15,7 @@ public class NeuralNetworkValidatorImpl implements NeuralNetworkValidator {
 
     @Override
     public void validate(NeuralNetwork neuralNetwork, List<List<Double>> validationInputs, List<List<Double>> validationOutputs) throws Exception {
-        validationError = 0;
+        double sumSquaredError = 0;
         rSquared = 0;
         double outputsMean = calculateMean(validationOutputs);
         // residual sum squared and total sum squared for calculating the coefficient of determination
@@ -34,15 +34,18 @@ public class NeuralNetworkValidatorImpl implements NeuralNetworkValidator {
             /*
              * TODO: implement for num. outputs > 1
              */
-            // calculate validation mean square error, residual sum squared and total sum squared
+            // calculate sum squared error, residual sum squared and total sum squared
             List<Double> realOutputs = validationOutputs.get(i);
             double unexplainedDiff = realOutputs.get(0) - calculatedOutputs.get(0);
             double totalDiff = realOutputs.get(0) - outputsMean;
-            validationError += 0.5 * (unexplainedDiff * unexplainedDiff);
+            sumSquaredError += (unexplainedDiff * unexplainedDiff);
             rss += (unexplainedDiff * unexplainedDiff);
             tss += (totalDiff * totalDiff);
 
         }
+
+        // calculate validation error, which is a mean squared error
+        validationError = sumSquaredError / validationOutputs.size();
 
         // finally calculate the coefficient of determination
         rSquared = 1 - (rss / tss);

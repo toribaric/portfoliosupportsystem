@@ -31,7 +31,7 @@ public class BackpropWithMomentum extends AbstractSupervisedTrainingAlgorithm {
     @Override
     protected Double doExecute(NeuralNetwork neuralNetwork, double learningRate, List<List<Double>> setInputs, List<List<Double>> setOutputs) throws Exception {
 
-        double errorSum = 0;
+        double sumSquaredError = 0;
 
         ActivationFunctionType activationFunctionType = ActivationFunctionType.valueOf(neuralNetwork.getActivationFunction());
 
@@ -48,7 +48,7 @@ public class BackpropWithMomentum extends AbstractSupervisedTrainingAlgorithm {
 
             // process output layer
             List<Double> targetOutputs = setOutputs.get(i);
-            errorSum = processOutputLayer(neuronLayers, activationFunctionType, calculatedOutputs, targetOutputs, learningRate, errorSum);
+            sumSquaredError = processOutputLayer(neuronLayers, activationFunctionType, calculatedOutputs, targetOutputs, learningRate, sumSquaredError);
 
             // process hidden layers
             List<Double> networkInputs = setInputs.get(i);
@@ -56,11 +56,12 @@ public class BackpropWithMomentum extends AbstractSupervisedTrainingAlgorithm {
 
         }
 
-        return errorSum;
+        // return MSE - mean squared error
+        return sumSquaredError / setOutputs.size();
 
     }
 
-    private double processOutputLayer(List<NeuronLayer> neuronLayers, ActivationFunctionType activationFunctionType, List<Double> calculatedOutputs, List<Double> targetOutputs, double learningRate, double errorSum) {
+    private double processOutputLayer(List<NeuronLayer> neuronLayers, ActivationFunctionType activationFunctionType, List<Double> calculatedOutputs, List<Double> targetOutputs, double learningRate, double sumSquaredError) {
 
         NeuronLayer outputLayer = neuronLayers.get(neuronLayers.size() - 1);
         NeuronLayer hiddenLayer = neuronLayers.get(neuronLayers.size() - 2);
@@ -89,14 +90,14 @@ public class BackpropWithMomentum extends AbstractSupervisedTrainingAlgorithm {
 
             // update SSE - sum squared errors - when SSE becomes lower than error threshold, training is finished
             // also know as squared sum of residuals - or deviation of a sample (calculated output) from it's "theoretical value" (target output)
-            errorSum += (( targetOutput - calculatedOutput ) * ( targetOutput - calculatedOutput )) * 0.5;
+            sumSquaredError += (( targetOutput - calculatedOutput ) * ( targetOutput - calculatedOutput ));
 
             // update output neurons weights
             updateNeuronWeights(outputNeuron, neuronInputs, error, learningRate);
 
         }
 
-        return errorSum;
+        return sumSquaredError;
 
     }
 

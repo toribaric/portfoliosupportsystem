@@ -52,7 +52,7 @@ Ext.define('TSP.view.ann.training.Setup', {
                                 name: 'errorThreshold',
                                 fieldLabel: 'Error threshold',
                                 allowBlank: false,
-                                value: 0.01
+                                value: 0.001
                             },
                             {
                                 xtype: 'combo',

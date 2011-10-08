@@ -31,7 +31,7 @@ public class ResilientPropagation extends AbstractSupervisedTrainingAlgorithm {
     @Override
     protected Double doExecute(NeuralNetwork neuralNetwork, double learningRate, List<List<Double>> setInputs, List<List<Double>> setOutputs) throws Exception {
 
-        double errorSum = 0;
+        double sumSquaredError = 0;
 
         // reset sum of partial derivatives Ee/wij (for all weights)
         resetSumDerivatives(neuralNetwork);
@@ -39,8 +39,8 @@ public class ResilientPropagation extends AbstractSupervisedTrainingAlgorithm {
         ActivationFunctionType activationFunctionType = ActivationFunctionType.valueOf(neuralNetwork.getActivationFunction());
         List<NeuronLayer> neuronLayers = neuralNetwork.getNeuronLayers();
 
-        // go through all training set input/output pairs (patterns) and calculate sum of MSE and sum of partial derivatives
-        // of total MSE with respect to every weight (dE/dwij) by summing partial derivatives of MSE per training pattern
+        // go through all training set input/output pairs (patterns) and calculate sum of SSE and sum of partial derivatives
+        // of total SSE with respect to every weight (dE/dwij) by summing partial derivatives of SSE per training pattern
         // with respect to every weight (dEp/dwij) -> dE/dwij = 1/2 * SUM(dEp/dwij) -> we'll than use it to adjust neurons'
         // weights with the RPROP algorithm
         for( int i = 0; i < setInputs.size(); i++ ) {
@@ -53,7 +53,7 @@ public class ResilientPropagation extends AbstractSupervisedTrainingAlgorithm {
 
             // process output layer
             List<Double> targetOutputs = setOutputs.get(i);
-            errorSum = processOutputLayer(neuronLayers, activationFunctionType, calculatedOutputs, targetOutputs, errorSum);
+            sumSquaredError = processOutputLayer(neuronLayers, activationFunctionType, calculatedOutputs, targetOutputs, sumSquaredError);
 
             // process hidden layers
             List<Double> networkInputs = setInputs.get(i);
@@ -67,10 +67,12 @@ public class ResilientPropagation extends AbstractSupervisedTrainingAlgorithm {
             }
         }
 
-        return errorSum;
+        // return MSE - mean squared error
+        return sumSquaredError / setOutputs.size();
+
     }
 
-    private double processOutputLayer(List<NeuronLayer> neuronLayers, ActivationFunctionType activationFunctionType, List<Double> calculatedOutputs, List<Double> targetOutputs, double errorSum) {
+    private double processOutputLayer(List<NeuronLayer> neuronLayers, ActivationFunctionType activationFunctionType, List<Double> calculatedOutputs, List<Double> targetOutputs, double sumSquaredError) {
 
         NeuronLayer outputLayer = neuronLayers.get(neuronLayers.size() - 1);
         NeuronLayer hiddenLayer = neuronLayers.get(neuronLayers.size() - 2);
@@ -97,9 +99,9 @@ public class ResilientPropagation extends AbstractSupervisedTrainingAlgorithm {
             // save neuron's error value for hidden layers calculations
             outputNeuron.setError(errorSignal);
 
-            // update MSE - mean squared error - when MSE becomes lower than error threshold, training is finished
+            // update SSE - sum squared error - when SSE becomes lower than error threshold, training is finished
             // also know as squared sum of residuals - or deviation of a sample (calculated output) from it's "theoretical value" (target output)
-            errorSum += (( targetOutput - calculatedOutput ) * ( targetOutput - calculatedOutput )) * 0.5;
+            sumSquaredError += (( targetOutput - calculatedOutput ) * ( targetOutput - calculatedOutput ));
 
             // calculate partial derivatives of Ep (error produced by current training pattern) with respect to each of current neuron's
             // weight and add those to the existing sum of derivatives for this training epoch (all training set patterns)
@@ -107,7 +109,7 @@ public class ResilientPropagation extends AbstractSupervisedTrainingAlgorithm {
 
         }
 
-        return errorSum;
+        return sumSquaredError;
 
     }
 
