@@ -2,6 +2,7 @@ package org.nnga.tsp.executor.neuralnetwork.impl;
 
 import org.nnga.tsp.algorithms.neuralnetwork.SupervisedTrainingAlgorithm;
 import org.nnga.tsp.algorithms.neuralnetwork.types.SupervisedTrainingAlgorithmType;
+import org.nnga.tsp.assessor.NeuralNetworkAssessor;
 import org.nnga.tsp.executor.neuralnetwork.ThreadPoolExecutorProvider;
 import org.nnga.tsp.executor.neuralnetwork.TrainingExecutor;
 import org.nnga.tsp.executor.neuralnetwork.context.TrainingExecutorContext;
@@ -12,7 +13,6 @@ import org.nnga.tsp.persistence.entity.NeuralNetwork;
 import org.nnga.tsp.persistence.entity.TrainingSet;
 import org.nnga.tsp.persistence.provider.NeuralNetworkDataProvider;
 import org.nnga.tsp.persistence.provider.TrainingSetDataProvider;
-import org.nnga.tsp.validator.NeuralNetworkValidator;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.util.*;
@@ -28,12 +28,12 @@ public class TrainingExecutorImpl implements TrainingExecutor {
     private TrainingSetDataProvider trainingSetDataProvider;
     private TrainingSetParser trainingSetParser;
     private SupervisedTrainingAlgorithm supervisedTrainingAlgorithm;
-    private NeuralNetworkValidator neuralNetworkValidator;
+    private NeuralNetworkAssessor neuralNetworkAssessor;
     private NeuralNetworkTrainingObserver neuralNetworkTrainingObserver;
     private Map<Integer, TrainingExecutorContext> executingContexts = new ConcurrentHashMap<Integer, TrainingExecutorContext>();
 
     @Override
-    public void train(int neuralNetworkId, int trainingSetId, Integer validationSetId, Integer validationFrequency, SupervisedTrainingAlgorithmType supervisedTrainingAlgorithmType, double learningRate, double errorThreshold, Integer maxIterations) {
+    public void train(int neuralNetworkId, int trainingSetId, Integer validationSetId, Integer testSetId, Integer validationFrequency, SupervisedTrainingAlgorithmType supervisedTrainingAlgorithmType, double learningRate, double errorThreshold, Integer maxIterations) {
         NeuralNetwork neuralNetwork = neuralNetworkDataProvider.getById(neuralNetworkId);
         TrainingSet trainingSet = trainingSetDataProvider.getById(trainingSetId);
 
@@ -52,9 +52,19 @@ public class TrainingExecutorImpl implements TrainingExecutor {
             validationOutputs = validationData.get("outputs");
         }
 
-        TrainingExecutorParamsContext params = new TrainingExecutorParamsContext(setInputs, setOutputs, validationInputs, validationOutputs, validationFrequency, supervisedTrainingAlgorithmType, learningRate, errorThreshold, maxIterations);
+        // get validation set inputs and outputs
+        List<List<Double>> testInputs = null;
+        List<List<Double>> testOutputs = null;
+        if( testSetId != null ) {
+            TrainingSet testSet = trainingSetDataProvider.getById(testSetId);
+            Map<String, List<List<Double>>> testData = trainingSetParser.getTrainingData(testSet);
+            testInputs = testData.get("inputs");
+            testOutputs = testData.get("outputs");
+        }
 
-        train(new TrainingExecutorContext(neuralNetwork, supervisedTrainingAlgorithm, neuralNetworkValidator, params, neuralNetworkDataProvider, executingContexts));
+        TrainingExecutorParamsContext params = new TrainingExecutorParamsContext(setInputs, setOutputs, validationInputs, validationOutputs, testInputs, testOutputs, validationFrequency, supervisedTrainingAlgorithmType, learningRate, errorThreshold, maxIterations);
+
+        train(new TrainingExecutorContext(neuralNetwork, supervisedTrainingAlgorithm, neuralNetworkAssessor, params, neuralNetworkDataProvider, executingContexts));
     }
 
     @Override
@@ -102,8 +112,8 @@ public class TrainingExecutorImpl implements TrainingExecutor {
     }
 
     @Required
-    public void setNeuralNetworkValidator(NeuralNetworkValidator neuralNetworkValidator) {
-        this.neuralNetworkValidator = neuralNetworkValidator;
+    public void setNeuralNetworkAssessor(NeuralNetworkAssessor neuralNetworkAssessor) {
+        this.neuralNetworkAssessor = neuralNetworkAssessor;
     }
 
     @Required

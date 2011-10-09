@@ -28,8 +28,12 @@ public class NeuralNetwork implements PersistenceEntity {
     private int numHiddenLayers;
     @Column(name = "ActivationFunction")
     private String activationFunction;
+    @Column(name = "ValidationError")
+    private Double validationError;
     @Column(name = "R2")
     private Double r2;
+    @Column(name = "ErrorEnergy")
+    private Double errorEnergy;
     @Column(name = "Trained")
     private boolean trained;
     @Column(name = "ShareId")
@@ -116,12 +120,28 @@ public class NeuralNetwork implements PersistenceEntity {
         this.activationFunction = activationFunction;
     }
 
+    public Double getValidationError() {
+        return validationError;
+    }
+
+    public void setValidationError(Double validationError) {
+        this.validationError = validationError;
+    }
+
     public Double getR2() {
         return r2;
     }
 
     public void setR2(Double r2) {
         this.r2 = r2;
+    }
+
+    public Double getErrorEnergy() {
+        return errorEnergy;
+    }
+
+    public void setErrorEnergy(Double errorEnergy) {
+        this.errorEnergy = errorEnergy;
     }
 
     public boolean isTrained() {

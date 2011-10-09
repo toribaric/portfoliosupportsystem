@@ -9,6 +9,8 @@ public class TrainingExecutorParamsContext {
     private List<List<Double>> setOutputs;
     private List<List<Double>> validationInputs;
     private List<List<Double>> validationOutputs;
+    private List<List<Double>> testInputs;
+    private List<List<Double>> testOutputs;
     private Integer validationFrequency;
     private SupervisedTrainingAlgorithmType supervisedTrainingAlgorithmType;
     private double learningRate;
@@ -19,11 +21,13 @@ public class TrainingExecutorParamsContext {
 
     }
 
-    public TrainingExecutorParamsContext(List<List<Double>> setInputs, List<List<Double>> setOutputs, List<List<Double>> validationInputs, List<List<Double>> validationOutputs, Integer validationFrequency, SupervisedTrainingAlgorithmType supervisedTrainingAlgorithmType, double learningRate, double errorThreshold, Integer maxIterations) {
+    public TrainingExecutorParamsContext(List<List<Double>> setInputs, List<List<Double>> setOutputs, List<List<Double>> validationInputs, List<List<Double>> validationOutputs, List<List<Double>> testInputs, List<List<Double>> testOutputs, Integer validationFrequency, SupervisedTrainingAlgorithmType supervisedTrainingAlgorithmType, double learningRate, double errorThreshold, Integer maxIterations) {
         this.setInputs = setInputs;
         this.setOutputs = setOutputs;
         this.validationInputs = validationInputs;
         this.validationOutputs = validationOutputs;
+        this.testInputs = testInputs;
+        this.testOutputs = testOutputs;
         this.validationFrequency = validationFrequency;
         this.supervisedTrainingAlgorithmType = supervisedTrainingAlgorithmType;
         this.learningRate = learningRate;
@@ -61,6 +65,22 @@ public class TrainingExecutorParamsContext {
 
     public void setValidationOutputs(List<List<Double>> validationOutputs) {
         this.validationOutputs = validationOutputs;
+    }
+
+    public List<List<Double>> getTestInputs() {
+        return testInputs;
+    }
+
+    public void setTestInputs(List<List<Double>> testInputs) {
+        this.testInputs = testInputs;
+    }
+
+    public List<List<Double>> getTestOutputs() {
+        return testOutputs;
+    }
+
+    public void setTestOutputs(List<List<Double>> testOutputs) {
+        this.testOutputs = testOutputs;
     }
 
     public Integer getValidationFrequency() {

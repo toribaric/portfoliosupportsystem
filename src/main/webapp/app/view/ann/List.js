@@ -12,18 +12,43 @@ Ext.define('TSP.view.ann.List', {
 
         this.columns = [
             {header: 'ID', dataIndex: 'id', width: 40},
-            {header: 'Name', dataIndex: 'name', flex: 1},
-            {header: 'Description', dataIndex: 'description', width: 300},
-            {header: 'Num. of input neurons', dataIndex: 'numInputNeurons', flex: 1},
-            {header: 'Num. of output neurons', dataIndex: 'numOutputNeurons', flex: 1},
-            {header: 'Num. of hidden layers', dataIndex: 'numHiddenLayers', flex: 1},
-            {header: 'Activation function', dataIndex: 'activationFunction', flex: 1},
+            {header: 'Name', dataIndex: 'name', width: 140},
+            {header: 'Description', dataIndex: 'description', flex: 1},
+            {header: 'Input neurons', dataIndex: 'numInputNeurons', width: 90},
+            {header: 'Output neurons', dataIndex: 'numOutputNeurons', width: 90},
+            {header: 'Hidden layers', dataIndex: 'numHiddenLayers', width: 90},
+            {header: 'Activation function', dataIndex: 'activationFunction', width: 110},
+            {
+                header: 'Validation error',
+                dataIndex: 'validationError',
+                width: 90,
+                renderer: function(value) {
+                    if( value != null ) {
+                        return value.toFixed(8);
+                    }
+                    return value;
+                }
+            },
             {
                 header: 'R^2',
                 dataIndex: 'r2',
-                width: 90,
+                width: 80,
                 renderer: function(value) {
-                    return value.toFixed(8);
+                    if( value != null ) {
+                        return value.toFixed(8);
+                    }
+                    return value;
+                }
+            },
+            {
+                header: 'Error energy',
+                dataIndex: 'errorEnergy',
+                width: 80,
+                renderer: function(value) {
+                    if( value != null ) {
+                        return value.toFixed(8);
+                    }
+                    return value;
                 }
             },
             {

@@ -37,7 +37,7 @@
         <property name="activationFunction" ref="activationFunction" />
     </bean>
 
-    <bean id="neuralNetworkValidator" class="org.nnga.tsp.validator.impl.NeuralNetworkValidatorImpl">
+    <bean id="neuralNetworkAssessor" class="org.nnga.tsp.assessor.impl.NeuralNetworkAssessorImpl">
         <property name="neuralNetworkProcessor" ref="neuralNetworkProcessor" />
     </bean>
 
@@ -49,7 +49,7 @@
         <property name="trainingSetDataProvider" ref="trainingSetDataProvider" />
         <property name="trainingSetParser" ref="trainingSetParser" />
         <property name="supervisedTrainingAlgorithm" ref="supervisedTrainingAlgorithm" />
-        <property name="neuralNetworkValidator" ref="neuralNetworkValidator" />
+        <property name="neuralNetworkAssessor" ref="neuralNetworkAssessor" />
         <property name="neuralNetworkTrainingObserver" ref="neuralNetworkTrainingObserver" />
     </bean>
 

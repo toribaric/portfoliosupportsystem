@@ -40,7 +40,9 @@ public class ForecastRequestProcessorImpl implements ForecastRequestProcessor {
 
                 Map<String, Object> networkResults = new HashMap<String, Object>();
                 networkResults.put("networkId", neuralNetwork.getId());
+                networkResults.put("validationError", neuralNetwork.getValidationError());
                 networkResults.put("rSquared", neuralNetwork.getR2());
+                networkResults.put("errorEnergy", neuralNetwork.getErrorEnergy());
                 networkResults.put("output", networkOutputs.get(0));
 
                 forecastResults.add(networkResults);

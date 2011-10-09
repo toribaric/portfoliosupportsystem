@@ -2,9 +2,9 @@ package org.nnga.tsp.executor.neuralnetwork.context;
 
 import org.apache.log4j.Logger;
 import org.nnga.tsp.algorithms.neuralnetwork.SupervisedTrainingAlgorithm;
+import org.nnga.tsp.assessor.NeuralNetworkAssessor;
 import org.nnga.tsp.persistence.entity.NeuralNetwork;
 import org.nnga.tsp.persistence.provider.NeuralNetworkDataProvider;
-import org.nnga.tsp.validator.NeuralNetworkValidator;
 
 import java.util.Map;
 import java.util.Observable;
@@ -17,7 +17,7 @@ public class TrainingExecutorContext extends Observable implements Runnable {
 
     private NeuralNetwork neuralNetwork;
     private SupervisedTrainingAlgorithm supervisedTrainingAlgorithm;
-    private NeuralNetworkValidator neuralNetworkValidator;
+    private NeuralNetworkAssessor neuralNetworkAssessor;
     private TrainingExecutorParamsContext params;
     private NeuralNetworkDataProvider neuralNetworkDataProvider;
 
@@ -25,26 +25,27 @@ public class TrainingExecutorContext extends Observable implements Runnable {
     private int trainingIteration;
     private boolean trainingInProcess;
 
-    // additional data given when validation set is used
+    // additional data returned when assessment (validation) is performed
     private double validationError;
     private double rSquared;
 
     private Map<Integer, TrainingExecutorContext> executingContexts;
 
-    public TrainingExecutorContext(NeuralNetwork neuralNetwork, SupervisedTrainingAlgorithm supervisedTrainingAlgorithm, NeuralNetworkValidator neuralNetworkValidator, TrainingExecutorParamsContext params, NeuralNetworkDataProvider neuralNetworkDataProvider, Map<Integer, TrainingExecutorContext> executingContexts) {
+    public TrainingExecutorContext(NeuralNetwork neuralNetwork, SupervisedTrainingAlgorithm supervisedTrainingAlgorithm, NeuralNetworkAssessor neuralNetworkAssessor, TrainingExecutorParamsContext params, NeuralNetworkDataProvider neuralNetworkDataProvider, Map<Integer, TrainingExecutorContext> executingContexts) {
         notNull(neuralNetwork);
         notNull(params);
         notNull(supervisedTrainingAlgorithm);
+        notNull(neuralNetworkAssessor);
         notNull(neuralNetworkDataProvider);
         notNull(executingContexts);
 
         this.neuralNetwork = neuralNetwork;
         this.supervisedTrainingAlgorithm = supervisedTrainingAlgorithm;
-        this.neuralNetworkValidator = neuralNetworkValidator;
+        this.neuralNetworkAssessor = neuralNetworkAssessor;
         this.params = params;
         this.neuralNetworkDataProvider = neuralNetworkDataProvider;
 
-        this.totalError = 0.5;
+        this.totalError = 0.1;
         this.trainingIteration = 0;
         trainingInProcess = false;
 
@@ -83,34 +84,19 @@ public class TrainingExecutorContext extends Observable implements Runnable {
             }
 
             // perform validation of so-far-trained network (if configured)
-            if( params.getValidationFrequency() != null && params.getValidationInputs() != null && params.getValidationOutputs() != null ) {
+            if( params.getValidationFrequency() != null ) {
                 if( i >= params.getValidationFrequency() ) {
-                i = 0;
-                    try {
-                        neuralNetworkValidator.validate(neuralNetwork, params.getValidationInputs(), params.getValidationOutputs());
-                        validationError = neuralNetworkValidator.getValidationError();
-                        rSquared = neuralNetworkValidator.getRSquared();
-                    } catch (Exception e) {
-                        /*
-                         * TODO: user must ve notified of this situation!
-                         */
-                        LOGGER.info("Error in network validation (neural network " + neuralNetwork.getName() + "): " + e.getMessage(), e);
-                    }
+                    validateNetwork();
+                    i = 0;
                 }
             }
 
-            // iteration finished
             trainingIteration++;
 
             // if maxIterations is defined and achieved, stop training
-            if( params.getMaxIterations() != null )  {
-                if( trainingIteration == params.getMaxIterations() ) {
-                    LOGGER.info("Max iterations achieved for neural network " + neuralNetwork.getName() + ", finishing training...");
-                    trainingInProcess = false;
-                }
-            }
+            checkMaxIterationsReached();
 
-            // if errorSum (SSE) is lower tan threshold, training is finished
+            // if mean squared error (MSE) is lower tan threshold, training is finished
             if( totalError <= params.getErrorThreshold() ) {
                 trainingInProcess = false;
             }
@@ -125,18 +111,69 @@ public class TrainingExecutorContext extends Observable implements Runnable {
 
         }
 
+        // this context has done it's job, so remove it from active contexts
         executingContexts.remove(neuralNetwork.getId());
 
+        // perform test of trained network
+        double errorEnergy = testNetwork();
+
         // save new, trained network (weights precisely)
-        try {
-            neuralNetwork.setR2(rSquared);
-            neuralNetworkDataProvider.save(neuralNetwork);
-        } catch (Exception e) {
-            LOGGER.info("Error in training algorithm execution (neural network " + neuralNetwork.getName() + "): " + e.getMessage(), e);
-            return;
+        if( saveTrainedNetwork(errorEnergy) ) {
+            LOGGER.info("Training of neural network " + neuralNetwork.getName() + " finished!");
         }
 
-        LOGGER.info("Training of neural network " + neuralNetwork.getName() + " finished!");
+    }
+
+    private void checkMaxIterationsReached() {
+        if( params.getMaxIterations() != null )  {
+            if( trainingIteration == params.getMaxIterations() ) {
+                LOGGER.info("Max iterations achieved for neural network " + neuralNetwork.getName() + ", finishing training...");
+                trainingInProcess = false;
+            }
+        }
+    }
+
+    private void validateNetwork() {
+        if( params.getValidationInputs() != null && params.getValidationOutputs() != null ) {
+            try {
+                neuralNetworkAssessor.validate(neuralNetwork, params.getValidationInputs(), params.getValidationOutputs());
+                validationError = neuralNetworkAssessor.getValidationError();
+                rSquared = neuralNetworkAssessor.getRSquared();
+            } catch (Exception e) {
+                /*
+                 * TODO: user must ve notified of this situation!
+                 */
+                LOGGER.info("Error in network assessment/validation (neural network " + neuralNetwork.getName() + "): " + e.getMessage(), e);
+            }
+        }
+    }
+
+    private double testNetwork() {
+        double errorEnergy = 0;
+        if( params.getTestInputs() != null && params.getTestOutputs() != null ) {
+            try {
+                errorEnergy = neuralNetworkAssessor.test(neuralNetwork, params.getTestInputs(), params.getTestOutputs());
+            } catch (Exception e) {
+                /*
+                 * TODO: user must ve notified of this situation!
+                 */
+                LOGGER.info("Error in network assessment/test (neural network " + neuralNetwork.getName() + "): " + e.getMessage(), e);
+            }
+        }
+        return errorEnergy;
+    }
+
+    private boolean saveTrainedNetwork(double errorEnergy) {
+        try {
+            neuralNetwork.setValidationError(validationError);
+            neuralNetwork.setR2(rSquared);
+            neuralNetwork.setErrorEnergy(errorEnergy);
+            neuralNetworkDataProvider.save(neuralNetwork);
+            return true;
+        } catch (Exception e) {
+            LOGGER.info("Error in training algorithm execution; network persist failed (neural network " + neuralNetwork.getName() + "): " + e.getMessage(), e);
+            return false;
+        }
     }
 
     private void trainingDataChanged() {
@@ -171,4 +208,5 @@ public class TrainingExecutorContext extends Observable implements Runnable {
     public double getRSquared() {
         return rSquared;
     }
+
 }
